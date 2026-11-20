@@ -1,6 +1,6 @@
 # BetMetrics API contract
 
-**Status:** Draft v0.2.0. Nothing is implemented yet, and every section is open for review.
+**Status:** Draft v0.2.1. Nothing is implemented yet, and every section is open for review.
 
 This document is the single source of truth for the data model and the public, read-only HTTP API shared by `/backend`, `/frontend` and `/tests`. See the change process in [CLAUDE.md](../CLAUDE.md#the-api-contract-is-the-source-of-truth).
 
@@ -281,7 +281,7 @@ interface MeasurementBucket {
 
 | Method & path    | Description                                                                              |
 | ---------------- | ---------------------------------------------------------------------------------------- |
-| `GET /v1/health` | `{ "status": "ok", "version": "<api semver>", "contractVersion": "0.2.0" }`. Not cached. |
+| `GET /v1/health` | `{ "status": "ok", "version": "<api semver>", "contractVersion": "0.2.1" }`. Not cached. |
 
 ---
 
@@ -291,13 +291,13 @@ interface MeasurementBucket {
 { "error": { "code": "NOT_FOUND", "message": "Casino 'foo' not found", "details": {} } }
 ```
 
-| HTTP | `code`                                    | When                                                                                             |
-| ---- | ----------------------------------------- | ------------------------------------------------------------------------------------------------ |
-| 400  | `INVALID_PARAMETER` / `MISSING_PARAMETER` | Bad or missing query parameter, including an unsupported `locale` (`details.parameter` names it) |
-| 404  | `NOT_FOUND`                               | Unknown slug, market code or route                                                               |
-| 405  | `METHOD_NOT_ALLOWED`                      | Any non-`GET` method                                                                             |
-| 429  | `RATE_LIMITED`                            | Rate limit exceeded (`Retry-After` header)                                                       |
-| 500  | `INTERNAL`                                | Unexpected error (no stack traces in the body)                                                   |
+| HTTP | `code`                                    | When                                                                                                                       |
+| ---- | ----------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| 400  | `INVALID_PARAMETER` / `MISSING_PARAMETER` | Bad or missing **query** parameter, including an unsupported `?locale=` or `?market=` value (`details.parameter` names it) |
+| 404  | `NOT_FOUND`                               | Unknown **path** segment: a casino or game slug, a market code in `/v1/markets/{code}`, or an unknown route                |
+| 405  | `METHOD_NOT_ALLOWED`                      | Any non-`GET` method                                                                                                       |
+| 429  | `RATE_LIMITED`                            | Rate limit exceeded (`Retry-After` header)                                                                                 |
+| 500  | `INTERNAL`                                | Unexpected error (no stack traces in the body)                                                                             |
 
 ---
 
@@ -323,5 +323,6 @@ interface MeasurementBucket {
 
 | Version | Date       | Change                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 | ------- | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 0.2.1   | 2026-11-20 | Clarified errors: an unsupported query value (e.g. `?market=zz`) returns 400 `INVALID_PARAMETER`; 404 applies only to unknown path segments (slugs, `/v1/markets/{code}`, routes).                                                                                                                                                                                                                                                                                                                                                                                                                                      |
 | 0.2.0   | 2026-11-20 | Added Spanish: locales `es-ES` and `es-AR`, sharing an `es` base with regional overrides and a defined fallback chain. `Localized<T>` replaces the two-language `LocalizedText`, and the API now resolves the locale on the server (`meta.locale`, `Content-Language`). Documented that market and locale are independent, with the market geolocated and locked. `Market` gains `defaultLocale`, `legalNotices` and `responsibleGambling[]`, which replace `responsibleGamblingUrl` (**breaking**). `Offer.terms.termsUrl` is now localised. Added `GET /v1/markets/{code}`. Resolved the open question about Spanish. |
 | 0.1.0   | 2026-11-20 | Initial draft                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
