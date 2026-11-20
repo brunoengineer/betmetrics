@@ -1,0 +1,37 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+lib/
+.next/
+out/
+*.tsbuildinfo
+
+# Tests
+coverage/
+playwright-report/
+test-results/
+blob-report/
+
+# Firebase
+.firebase/
+*-debug.log
+firebase-debug.*.log
+
+# Environment & secrets — never commit
+.env
+.env.*
+!.env.example
+*service-account*.json
+.runtimeconfig.json
+
+# Claude Code local settings
+.claude/settings.local.json
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/extensions.json
+.idea/

@@ -1,0 +1,27 @@
+{
+  "name": "betmetrics",
+  "private": true,
+  "description": "Neutral technical comparison of online casinos: performance, game availability and offers.",
+  "engines": {
+    "node": ">=24"
+  },
+  "workspaces": [
+    "backend",
+    "frontend",
+    "tests"
+  ],
+  "scripts": {
+    "lint": "eslint . && prettier --check .",
+    "format": "prettier --write .",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.5",
+    "eslint": "^9.39.5",
+    "eslint-config-prettier": "^10.1.8",
+    "prettier": "^3.10.1",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.73.0"
+  }
+}
