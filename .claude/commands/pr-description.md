@@ -30,7 +30,7 @@ Collect every change on the current branch, whether it is committed, pushed, or 
 1. **Branch and base**
    - Current branch: `git rev-parse --abbrev-ref HEAD`
    - Base: the branch the user names. Otherwise `git symbolic-ref --short refs/remotes/origin/HEAD` (e.g. `origin/main`). Otherwise `main`, then `master`.
-   - If the current branch *is* the base branch, compare against its remote (e.g. `origin/main`) so unpushed commits and local changes are still included.
+   - If the current branch _is_ the base branch, compare against its remote (e.g. `origin/main`) so unpushed commits and local changes are still included.
 2. **Commits ahead of the base**, pushed or not: `git log <base>..HEAD --format="%h %s"`
 3. **Committed diff**: `git diff <base>...HEAD --stat`, then `git diff <base>...HEAD`
 4. **Staged and unstaged changes**: `git status --porcelain`, `git diff HEAD --stat`, then `git diff HEAD`
@@ -59,13 +59,13 @@ Conversation evidence counts only when it was run or observed in this session. N
 
 Pick one type and shape the sections around it:
 
-| Type | Required sections | Use when |
-|---|---|---|
-| Bug fix | Summary, Root cause, Changes, Verification | Product behavior was wrong |
-| Test fix | Summary, Root cause, Changes, Verification | Automated tests were failing or flaky |
-| Feature | Summary, Why, Changes, Verification | New behavior or new test coverage |
+| Type     | Required sections                                        | Use when                              |
+| -------- | -------------------------------------------------------- | ------------------------------------- |
+| Bug fix  | Summary, Root cause, Changes, Verification               | Product behavior was wrong            |
+| Test fix | Summary, Root cause, Changes, Verification               | Automated tests were failing or flaky |
+| Feature  | Summary, Why, Changes, Verification                      | New behavior or new test coverage     |
 | Refactor | Summary, Why, Changes, Verification (behavior unchanged) | Structure changes, no behavior change |
-| Chore | Summary, Why, Changes, Verification | Dependencies, config, CI, tooling |
+| Chore    | Summary, Why, Changes, Verification                      | Dependencies, config, CI, tooling     |
 
 Add **Notes for reviewers** to every type when there is anything a reviewer must know. Skip any section that would only contain filler.
 
@@ -110,15 +110,17 @@ Use this structure. Omit optional parts that do not apply.
 <Summary: what was wrong or missing, what this PR does, the key insight. 2–3 sentences.>
 
 ## Root cause
+
 <!-- Bug fix / Test fix. Use "## Why" for Feature, Refactor, Chore: the need and why now, 1–3 sentences. -->
 
 - **<Cause> (<scope>):** <what broke and why, with inline evidence: `old` → `new`, error text, counts>.
 - **<Cause> (<scope>):** …
 
 <!-- Optional: only when 3+ tests or flows were affected and the reported cause differs from the real one. -->
+
 | Test | Reported as | Real cause |
-|---|---|---|
-| … | … | … |
+| ---- | ----------- | ---------- |
+| …    | …           | …          |
 
 ## Changes
 
@@ -131,8 +133,8 @@ flowchart LR
   classDef added stroke:#16a34a,stroke-width:3px,stroke-dasharray:5 3
 ```
 
-| File | Change | Why |
-|---|---|---|
+| File              | Change                                        | Why                        |
+| ----------------- | --------------------------------------------- | -------------------------- |
 | `path/to/file.ts` | <what changed, with `old` → `new` when short> | <what it fixes or enables> |
 
 **Unchanged:** <spec, fixtures, config, other selectors, contracts>.
@@ -144,8 +146,8 @@ flowchart LR
 ```
 
 | Test | <Project A> | <Project B> |
-|---|---|---|
-| … | ✅ 19.7s | ✅ 17.4s |
+| ---- | ----------- | ----------- |
+| …    | ✅ 19.7s    | ✅ 17.4s    |
 
 <Static checks, e.g. "TypeScript and ESLint pass on the changed file." Links to report, trace, or screenshots when available.>
 
@@ -160,11 +162,11 @@ When no ticket ID was found, the H1 is `# <Outcome-focused title>` and the meta 
 
 ### Risk Scale
 
-| Level | Meaning |
-|---|---|
-| **Low** | Test-only, docs, or isolated change with clear verification |
-| **Medium** | Production code with limited blast radius, or partial verification |
-| **High** | Shared contracts, auth, payments, data migrations, wide refactors, or missing verification on a critical path |
+| Level      | Meaning                                                                                                       |
+| ---------- | ------------------------------------------------------------------------------------------------------------- |
+| **Low**    | Test-only, docs, or isolated change with clear verification                                                   |
+| **Medium** | Production code with limited blast radius, or partial verification                                            |
+| **High**   | Shared contracts, auth, payments, data migrations, wide refactors, or missing verification on a critical path |
 
 ## Chat Response
 
