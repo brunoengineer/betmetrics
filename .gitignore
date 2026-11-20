@@ -35,3 +35,6 @@ Thumbs.db
 .vscode/*
 !.vscode/extensions.json
 .idea/
+
+# Local QA agent output (generated, never commit)
+qa-agent-hub/
