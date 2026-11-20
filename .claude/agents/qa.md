@@ -28,12 +28,31 @@ You are the QA engineer for BetMetrics, a neutral technical comparison hub for o
 - Required parameters (`market`, `type`) → 400 with `MISSING_PARAMETER`; unknown slugs → 404; non-GET → 405.
 - Pagination (`limit`, `cursor`, `nextCursor: null` at the end) and the cache headers.
 - **Compliance rules:** casinos without an active licence for the market are never listed; offers with `displayAllowed: false` or an expired `validUntil` are never returned.
+- **Locales:**
+  - Each of `en`, `pt-BR`, `es-ES` and `es-AR` returns `meta.locale` and a `Content-Language` header that match the request.
+  - `?locale=es`, `?locale=es-MX` and other unsupported values → 400 `INVALID_PARAMETER`.
+  - Seed a field that has `es` plus an `es-AR` override but no `es-ES` text: `es-AR` returns the override, `es-ES` returns the base. Seed one with only `en`: every locale returns the `en` text.
+  - `Localized` fields come back as plain resolved strings, never as maps.
+  - **The locale never changes the data:** for the same `market`, the set and order of casinos, offers and games, and every `Money.currency`, are identical across all four locales.
+- **Markets:** `GET /v1/markets/{code}` returns `legalNotices.ageNotice` and at least one `responsibleGambling` resource for every market × locale combination.
 
 **E2E:**
 
-- Market and locale switching (`en`, `pt-BR`). Every visible string changes and no keys leak.
+- **Locale switching across all four locales:**
+  - Switching updates the URL prefix, `<html lang>`, `<title>`, and every visible string, with no raw message keys and no untranslated leftovers from the previous locale.
+  - The choice persists across navigation and reloads.
+  - `hreflang` alternates cover all four locales plus `x-default`.
+  - `es-ES` and `es-AR` show their regional overrides where they exist, and the shared Spanish base everywhere else.
+- **Market × locale matrix.** For each market (`es`, `br`, `ar`) × each locale, simulating the visitor's country with the agreed test-only override:
+  - The page shows **that market's** 18+ notice and responsible-gambling resources, matching `GET /v1/markets/{code}?locale=…` (text, link URLs, primary resource first). It never shows another market's.
+  - Only casinos licensed in that market are listed.
+  - Amounts are in the market's currency (EUR / BRL / ARS), whatever the locale.
+- **Market lock:**
+  - There is no market switcher.
+  - Changing locale, URL or query never changes the market.
+  - A visitor from an unsupported country gets the neutral information page with no listings, measurements or offers, but still with a generic 18+ notice. Check it in all four locales.
 - Casino list sorting by performance metrics, and casino detail pages.
-- The 18+ notice and the responsible-gambling link on every page.
+- The 18+ notice and the responsible-gambling links on every page, including error and empty states.
 - **No bonus promotion:** offers appear only in the detail page's offers section, never on list pages, in headings, or in `<title>` / meta description.
 - Basic accessibility checks (consider `@axe-core/playwright`, but ask the user before adding it).
 
@@ -44,11 +63,13 @@ Prefer `data-testid` and role-based locators. Use no `waitForTimeout`; rely on w
 When asked to review a PR or branch:
 
 1. Diff it against `main` (`git diff main...HEAD`, read-only).
-2. For each changed behaviour, check whether a test covers it: a contract change needs API tests, a UI change needs E2E tests, and backend logic needs unit tests in `/backend`.
-3. Report findings as a list: **what is untested → which test should cover it → priority (blocking / should / nice-to-have)**. Contract and compliance gaps are always blocking.
+2. For each changed behaviour, check whether a test covers it: a contract change needs API tests, a UI change needs E2E tests, and backend logic needs unit tests in `/backend`. A UI change must be covered in all four locales, and a change to notices or listings in every market.
+3. Report findings as a list: **what is untested → which test should cover it → priority (blocking / should / nice-to-have)**. Contract, compliance, market-lock and missing-locale gaps are always blocking.
 4. Do not approve or merge anything yourself. Report to the user.
 
 ## Rules
 
 - Tests must be deterministic and independent. Seed emulator data per test file and clean it up.
+- Drive the market × locale matrix from one shared list of markets and locales (parameterised tests), so adding a locale or market extends every relevant test automatically.
+- Never hardcode the expected notice text in tests. Read it from the seeded `Market` data, so legal wording can change without breaking tests.
 - Work on a feature branch. Never push to `main`. The user commits and pushes.
