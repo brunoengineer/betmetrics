@@ -12,6 +12,31 @@ These rules apply to every human and every agent working in this repo.
 4. **CI must pass before merge.** The `CI` workflow ([.github/workflows/ci.yml](.github/workflows/ci.yml)) runs lint, typecheck and tests on every PR. Don't merge on red, and don't disable or skip checks to get green.
 5. **Secrets only in environment variables.** Never commit API keys, service-account JSON, tokens or `.env` files. Document every variable (name only, no value) in [.env.example](.env.example). In CI, use GitHub Actions secrets. In Cloud Functions, use Firebase secret params (`defineSecret`).
 
+## Development workflow (working with Claude Code)
+
+Every piece of work follows these steps. The developer runs every commit, push and PR action. Claude proposes them but never runs them.
+
+1. **Branch.** Start from an up-to-date `main` and create a feature branch (`git switch main`, `git pull`, `git switch -c feat/…`). Claude may create the local branch, and confirms which branch the work is on before changing files.
+2. **Work in small steps.** After each logical step, Claude runs `npm run lint` (and `typecheck` / `test` once they exist) and then **proposes the git commands**:
+   - `git add <explicit paths>`. Use explicit paths, not `-A`, so stray files don't slip in.
+   - `git commit -m "<type>: <summary>"`, using Conventional Commits types (`feat`, `fix`, `chore`, `docs`, `test`, `style`, `refactor`).
+   - `git push`, or `git push -u origin <branch>` the first time.
+3. **PR-ready checkpoint.** When Claude believes the branch is a complete, single logical change, it marks its message **PR-ready**, lists what the PR contains, and proposes the final git commands. This is the only point where Claude brings up a review. The developer confirms the scope or asks for more work, which takes the branch back to step 2.
+4. **Review: only on an explicit trigger.** Claude runs the review **only** when the developer says **"review"** (e.g. "pushed, review"). A normal "done", "committed" or "pushed" during step 2 never starts one, and Claude never starts a review on its own.
+   - Claude starts a separate reviewer agent with no conversation history, so the review isn't biased by having written the code. That agent follows [.claude/commands/pr-review.md](.claude/commands/pr-review.md) against the current branch, and the report is saved in `qa-agent-hub/response/pr-review/`.
+   - Each trigger runs exactly one review. Claude relays the findings, the developer decides which to fix, and the fixes go back through step 2.
+   - After review fixes are pushed, Claude asks whether to review again. It doesn't re-run until the developer says "review" again.
+5. **Describe: only on an explicit trigger.** When the developer says **"describe"** (meaning the review is closed), Claude runs [.claude/commands/pr-description.md](.claude/commands/pr-description.md) on the final branch and proposes the PR title and body. The description comes after the review so it reflects the final code, including the review fixes. It's saved in `qa-agent-hub/response/pr-description/`.
+6. **Open the PR.** The developer opens the PR into `main` with that title and body.
+7. **Address PR feedback.** The developer pastes reviewer comments or CI failures into the session. Claude fixes them on the same branch, and the fixes go back through step 2.
+8. **Merge.** The developer merges once CI is green and reviews are resolved.
+
+Rules for every step:
+
+- No AI attribution in commits, PR titles or PR bodies: no `Co-Authored-By` trailers and no "Generated with …" lines.
+- `qa-agent-hub/` holds local generated reports. It is git-ignored and never committed.
+- Anything outside the branch's scope gets flagged, with a suggestion to move it to its own branch. It isn't silently added.
+
 ## The API contract is the source of truth
 
 - [docs/api-contract.md](docs/api-contract.md) defines the data model and endpoints shared by backend, frontend and tests.
