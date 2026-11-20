@@ -6,7 +6,7 @@ BetMetrics is a hub that compares online casinos on **neutral, measured technica
 - **Game availability:** which games and providers each casino offers, per market.
 - **Offers:** a secondary, factual listing shown only where regulations permit it.
 
-Target markets are **Europe** (Spain first) and **Brazil / Argentina**. The site is available in **English** and **Portuguese (pt-BR)**.
+Target markets are **Europe** (Spain first) and **Brazil / Argentina**. The site is available in **English** (`en`), **Portuguese** (`pt-BR`) and **Spanish** (`es-ES`, `es-AR`). The language is the visitor's choice. The market (which casinos are shown) comes from the visitor's location and is independent of the language.
 
 > **Compliance first.** Gambling advertising is strictly regulated in our markets (e.g. Spain's Royal Decree 958/2020). BetMetrics leads with technical data and does not promote bonuses. Rankings never depend on offers or commercial relationships, and only operators licensed in a market are listed there. The full rules are in [CLAUDE.md](CLAUDE.md#compliance-and-content-rules-product-level-non-negotiable). For 18+ only.
 
@@ -16,7 +16,7 @@ Target markets are **Europe** (Spain first) and **Brazil / Argentina**. The site
 ┌───────────────┐   GET /v1/…    ┌──────────────────────────────┐
 │  frontend/    │ ─────────────▶ │  backend/ (Firebase)         │
 │  Next.js      │                │  Cloud Functions: HTTP API   │
-│  en / pt-BR   │                │  Scheduled collectors ──┐    │
+│  4 locales    │                │  Scheduled collectors ──┐    │
 └───────────────┘                │  Firestore ◀────────────┘    │
                                  └──────────────────────────────┘
         tests/ — Playwright E2E (frontend) + API tests (backend)
@@ -25,7 +25,7 @@ Target markets are **Europe** (Spain first) and **Brazil / Argentina**. The site
 | Folder                             | What's inside                                                                                                         |
 | ---------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
 | [backend/](backend/)               | Firebase Cloud Functions (read-only API and scheduled performance collectors), plus Firestore. Region `europe-west1`. |
-| [frontend/](frontend/)             | Next.js (App Router) site: mobile-first, i18n `en` / `pt-BR`.                                                         |
+| [frontend/](frontend/)             | Next.js (App Router) site: mobile-first, i18n `en` / `pt-BR` / `es-ES` / `es-AR`, geolocated market.                  |
 | [tests/](tests/)                   | Playwright end-to-end and API tests.                                                                                  |
 | [docs/](docs/)                     | [API contract](docs/api-contract.md) (data model + endpoints) and design docs.                                        |
 | [.claude/agents/](.claude/agents/) | Claude Code subagents: `backend`, `frontend`, `qa`.                                                                   |
