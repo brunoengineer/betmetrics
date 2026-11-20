@@ -24,6 +24,7 @@ Every piece of work follows these steps. The developer runs every commit, push a
 3. **PR-ready checkpoint.** When Claude believes the branch is a complete, single logical change, it marks its message **PR-ready**, lists what the PR contains, and proposes the final git commands. This is the only point where Claude brings up a review. The developer confirms the scope or asks for more work, which takes the branch back to step 2.
 4. **Review: only on an explicit trigger.** Claude runs the review **only** when the developer says **"review"** (e.g. "pushed, review"). A normal "done", "committed" or "pushed" during step 2 never starts one, and Claude never starts a review on its own.
    - Claude starts a separate reviewer agent with no conversation history, so the review isn't biased by having written the code. That agent follows [.claude/commands/pr-review.md](.claude/commands/pr-review.md) against the current branch, and the report is saved in `qa-agent-hub/response/pr-review/`.
+   - If the branch changes `/backend` or `/frontend`, the same trigger also runs the `qa` agent's coverage review, which reports test gaps by priority.
    - Each trigger runs exactly one review. Claude relays the findings, the developer decides which to fix, and the fixes go back through step 2.
    - After review fixes are pushed, Claude asks whether to review again. It doesn't re-run until the developer says "review" again.
 5. **Describe: only on an explicit trigger.** When the developer says **"describe"** (meaning the review is closed), Claude runs [.claude/commands/pr-description.md](.claude/commands/pr-description.md) on the final branch and proposes the PR title and body. The description comes after the review so it reflects the final code, including the review fixes. It's saved in `qa-agent-hub/response/pr-description/`.
@@ -84,6 +85,10 @@ Gambling advertising is heavily regulated in our markets (e.g. Spain's Royal Dec
 | `/.claude/agents` | shared      | Subagent definitions                                                                           |
 
 Each agent edits only its own folder. A change another folder needs is a request to its owner (or a contract PR), not an edit by you.
+
+**Agents never decide these on their own.** Adding, removing or upgrading a dependency, or changing `docs/api-contract.md`, always needs the developer's approval. Agents stop and return a proposal, and the main session asks the developer.
+
+**Parallel agents:** when more than one agent works at the same time, the main session gives each one its own git worktree (or the agent creates one from `origin/main`). Each worktree has its own branch and becomes its own PR. Agents never commit, push or open PRs. Each one ends with a report giving its worktree, branch, check results, the git commands for the developer, and a draft PR title.
 
 ## Tooling
 
