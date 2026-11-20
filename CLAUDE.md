@@ -2,6 +2,8 @@
 
 BetMetrics compares online casinos on **neutral technical data**: performance (page load, uptime, game load speed), game availability, and offers. Target markets are Europe (Spain first) and Brazil/Argentina. Supported locales are `en`, `pt-BR`, `es-ES` and `es-AR` (see [Locales and markets](#locales-and-markets)).
 
+**Phase two (planned):** a B2B reporting product with per-casino historical reports, built on the stored raw measurement history. This is why raw measurements are kept in full and never only as aggregates (see [backend.md](.claude/agents/backend.md)). Product and legal must confirm it fits the neutrality rules before it's built.
+
 These rules apply to every human and every agent working in this repo.
 
 ## Engineering rules
@@ -25,7 +27,7 @@ Every piece of work follows these steps. The developer runs every commit, push a
 4. **Review: only on an explicit trigger.** Claude runs the review **only** when the developer says **"review"** (e.g. "pushed, review"). A normal "done", "committed" or "pushed" during step 2 never starts one, and Claude never starts a review on its own.
    - Claude starts a separate reviewer agent with no conversation history, so the review isn't biased by having written the code. That agent follows [.claude/commands/pr-review.md](.claude/commands/pr-review.md) against the current branch, and the report is saved in `qa-agent-hub/response/pr-review/`.
    - If the branch changes `/backend` or `/frontend`, the same trigger also runs the `qa` agent's coverage review, which reports test gaps by priority.
-   - Each trigger runs exactly one review. Claude relays the findings, the developer decides which to fix, and the fixes go back through step 2.
+   - Each trigger runs exactly one review round: `/pr-review`, plus the coverage review when it applies. Claude relays the findings, the developer decides which to fix, and the fixes go back through step 2.
    - After review fixes are pushed, Claude asks whether to review again. It doesn't re-run until the developer says "review" again.
 5. **Describe: only on an explicit trigger.** When the developer says **"describe"** (meaning the review is closed), Claude runs [.claude/commands/pr-description.md](.claude/commands/pr-description.md) on the final branch and proposes the PR title and body. The description comes after the review so it reflects the final code, including the review fixes. It's saved in `qa-agent-hub/response/pr-description/`.
 6. **Open the PR.** The developer opens the PR into `main` with that title and body.
@@ -84,11 +86,18 @@ Gambling advertising is heavily regulated in our markets (e.g. Spain's Royal Dec
 | `/docs`           | shared      | API contract and other design docs                                                             |
 | `/.claude/agents` | shared      | Subagent definitions                                                                           |
 
-Each agent edits only its own folder. A change another folder needs is a request to its owner (or a contract PR), not an edit by you.
+Each agent edits only its own folder. A change another folder needs is a request to its owner, not an edit by you.
 
-**Agents never decide these on their own.** Adding, removing or upgrading a dependency, or changing `docs/api-contract.md`, always needs the developer's approval. Agents stop and return a proposal, and the main session asks the developer.
+**Agents never decide these on their own.** Adding, removing or upgrading a dependency, or changing `docs/api-contract.md`, always needs the developer's approval. Agents stop and return a proposal, and the main session asks the developer. After approval:
 
-**Parallel agents:** when more than one agent works at the same time, the main session gives each one its own git worktree (or the agent creates one from `origin/main`). Each worktree has its own branch and becomes its own PR. Agents never commit, push or open PRs. Each one ends with a report giving its worktree, branch, check results, the git commands for the developer, and a draft PR title.
+- The main session **resumes the same agent** (so it keeps the proposal's context) rather than starting a fresh one.
+- **Contract changes are made by the main session**, never by an agent. They go in their own PR, or as the first commit of the branch, with the contract version bumped. The agent then builds against the updated contract.
+
+**Branches and parallel agents:**
+
+- Agents never work on `main`. If an agent finds itself on `main`, it stops and reports.
+- Only the main session decides that agents run in parallel, because an agent can't see other agents. It starts each parallel agent in an isolated git worktree, or tells it in the prompt to create one. Each worktree has its own branch and becomes its own PR.
+- Agents never commit, push, open PRs or remove worktrees. Each one ends with a report giving its worktree path, branch, check results, the git commands for the developer, and a draft PR title. Once the PR is merged, the developer removes the worktree (`git worktree remove <path>`).
 
 ## Tooling
 
